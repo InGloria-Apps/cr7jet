@@ -1,0 +1,22 @@
+export const config = {
+  aircraftHex: '4d0226',
+  aircraftLabel: 'LX-GOL',
+  pollIntervalMs: 30_000,
+  primaryApiUrl: 'https://api.airplanes.live/v2/hex/',
+  fallbackApiUrl: 'https://api.adsb.lol/v2/hex/',
+  maxBackoffMs: 600_000,
+  machine: {
+    debounceReadings: 2,
+    signalLossLandingAltFt: 3_000,
+    signalLossConfirmMs: 5 * 60_000,
+    takeoffClimbFpm: 300,
+    takeoffDetectionCeilingAglFt: 8_000,
+    staleFlightTimeoutMs: 18 * 3_600_000,
+  },
+  nearAirportKm: 10,
+  fuelBurnKgPerHour: 1_900,
+  stalePostSkipMs: 30 * 60_000,
+  dbPath: process.env.DB_PATH ?? 'data/tracker.db',
+  airportsCsvPath: 'data/airports.csv',
+  map: { width: 800, height: 500, zoom: 9 },
+};
