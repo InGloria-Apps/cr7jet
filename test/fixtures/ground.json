@@ -1,0 +1,16 @@
+{
+  "ac": [
+    {
+      "hex": "4d0226",
+      "type": "adsb_icao",
+      "alt_baro": "ground",
+      "gs": 8.2,
+      "lat": 38.7742,
+      "lon": -9.1342,
+      "seen": 1.1,
+      "seen_pos": 1.5
+    }
+  ],
+  "total": 1,
+  "now": 1720000000000
+}

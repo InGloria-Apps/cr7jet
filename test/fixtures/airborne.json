@@ -1,0 +1,19 @@
+{
+  "ac": [
+    {
+      "hex": "4d0226",
+      "type": "adsb_icao",
+      "flight": "LXGOL   ",
+      "alt_baro": 4200,
+      "alt_geom": 4400,
+      "gs": 210.5,
+      "baro_rate": 1800,
+      "lat": 38.812345,
+      "lon": -9.101234,
+      "seen": 0.2,
+      "seen_pos": 0.3
+    }
+  ],
+  "total": 1,
+  "now": 1720000000000
+}
