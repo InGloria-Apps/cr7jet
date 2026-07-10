@@ -1,0 +1,13 @@
+services:
+  cr7jet-tracker:
+    build: .
+    env_file: .env
+    environment:
+      DB_PATH: /data/tracker.db
+    volumes:
+      - tracker-data:/data
+    restart: unless-stopped
+    stop_grace_period: 45s
+
+volumes:
+  tracker-data:
