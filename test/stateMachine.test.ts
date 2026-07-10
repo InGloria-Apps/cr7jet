@@ -136,3 +136,87 @@ describe('debounce', () => {
     expect(events).toEqual([]);
   });
 });
+
+describe('signal loss', () => {
+  const airborneLow = (): TrackerState =>
+    feed(grounded(), [
+      sig(60_000, 800, { verticalRateFpm: 2000 }),
+      sig(90_000, 1600, { verticalRateFpm: 2000 }),
+      sig(120_000, 1200, { verticalRateFpm: -800, lat: 38.9, lon: -9.0 }), // descending, agl 900
+    ]).state;
+
+  it('going absent while airborne emits nothing (internal signal_lost)', () => {
+    const r = transition(airborneLow(), absent(150_000), cfg);
+    expect(r.state.phase).toBe('signal_lost');
+    expect(r.events).toEqual([]);
+  });
+
+  it('presumed landing: last seen below 3000 ft AGL + 5 min silence', () => {
+    const s = transition(airborneLow(), absent(150_000), cfg).state; // lostSince = 150_000
+    const r = transition(s, absent(150_000 + 300_000), cfg);
+    expect(r.state.phase).toBe('grounded');
+    expect(r.events).toEqual([
+      {
+        type: 'landing',
+        ts: 150_000,
+        pos: { lat: 38.9, lon: -9.0 },
+        presumed: true,
+        takeoffTs: 60_000,
+        takeoffPos: { lat: 38.77, lon: -9.13 },
+      },
+    ]);
+  });
+
+  it('no presumed landing if reacquired before 5 min', () => {
+    let s = transition(airborneLow(), absent(150_000), cfg).state;
+    s = transition(s, absent(300_000), cfg).state; // 2.5 min silent — under threshold
+    const r = transition(s, sig(330_000, 1500), cfg);
+    expect(r.state.phase).toBe('airborne');
+    expect(r.events).toEqual([]);
+  });
+
+  it('high-altitude loss never presumes a landing', () => {
+    const cruise = feed(initialState, [sig(0, 38_000), sig(30_000, 38_000)]).state;
+    const s = transition(cruise, absent(60_000), cfg).state;
+    const r = transition(s, absent(60_000 + 600_000), cfg); // 10 min silent
+    expect(r.state.phase).toBe('signal_lost');
+    expect(r.events).toEqual([]);
+  });
+
+  it('stale flight: 18 h silence resets to unknown with abandoned event, no landing', () => {
+    const cruise = feed(initialState, [sig(0, 38_000), sig(30_000, 38_000)]).state;
+    const s = transition(cruise, absent(60_000), cfg).state;
+    const r = transition(s, absent(60_000 + cfg.staleFlightTimeoutMs), cfg);
+    expect(r.state).toEqual(initialState);
+    expect(r.events).toEqual([{ type: 'abandoned', ts: 60_000 + cfg.staleFlightTimeoutMs }]);
+  });
+});
+
+describe('mid-flight adoption', () => {
+  it('first seen at cruise: airborne with no takeoff event', () => {
+    const { state, events } = feed(initialState, [sig(0, 38_000), sig(30_000, 38_000)]);
+    expect(state.phase).toBe('airborne');
+    expect(state.flight).toEqual({ takeoffTs: null, takeoffPos: null });
+    expect(events).toEqual([]);
+  });
+
+  it('landing after adoption carries null takeoff info (post will omit duration/fuel)', () => {
+    const adopted = feed(initialState, [sig(0, 38_000), sig(30_000, 38_000)]).state;
+    const { events } = feed(adopted, [sig(60_000, 'ground'), sig(90_000, 'ground')]);
+    expect(events).toEqual([
+      { type: 'landing', ts: 60_000, pos: { lat: 38.77, lon: -9.13 }, presumed: false, takeoffTs: null, takeoffPos: null },
+    ]);
+  });
+});
+
+describe('absence and debounce interaction', () => {
+  it('absence between candidate readings breaks the consecutive run', () => {
+    const { state, events } = feed(grounded(), [
+      sig(60_000, 800, { verticalRateFpm: 2000 }),
+      absent(90_000),
+      sig(120_000, 1600, { verticalRateFpm: 2000 }),
+    ]);
+    expect(state.phase).toBe('grounded'); // restarted candidate: only 1 consecutive airborne reading
+    expect(events).toEqual([]);
+  });
+});
