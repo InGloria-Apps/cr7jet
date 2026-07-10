@@ -59,7 +59,7 @@ function onSignal(s: TrackerState, obs: SignalObs, cfg: MachineConfig): Result {
     };
   }
 
-  const cand =
+  const cand: NonNullable<TrackerState['candidate']> =
     s.candidate && s.candidate.phase === obsPhase
       ? { ...s.candidate, count: s.candidate.count + 1 }
       : { phase: obsPhase, count: 1, firstObs: obs };
