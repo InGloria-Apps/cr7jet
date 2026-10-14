@@ -6,7 +6,7 @@ import type { FlightEvent, TrackerState } from './core/types.js';
 import { fetchObservation } from './adsb/client.js';
 import { elevationFtAt, loadAirports, resolvePlace } from './airports/airports.js';
 import { Store, type PostRow } from './store/db.js';
-import { landingText, takeoffText } from './bluesky/messages.js';
+import { creditLine, landingText, takeoffText } from './bluesky/messages.js';
 import { Poster } from './bluesky/poster.js';
 import { renderMap } from './map/staticMap.js';
 
@@ -43,7 +43,7 @@ function recordEvents(store: Store, state: TrackerState, events: FlightEvent[], 
 
 async function dispatch(store: Store, poster: Poster | null, post: PostRow): Promise<void> {
   if (dryRun || !poster) {
-    logger.info({ text: post.text }, 'dry-run: would post');
+    logger.info({ text: post.text + creditLine(true) }, 'dry-run: would post');
     store.markPost(post.id, 'dry_run');
     return;
   }
@@ -53,11 +53,12 @@ async function dispatch(store: Store, poster: Poster | null, post: PostRow): Pro
   } catch (err) {
     logger.warn({ err: String(err) }, 'map render failed; posting text-only');
   }
+  const text = post.text + creditLine(image !== null);
   for (let attempt = 1; attempt <= 3; attempt++) {
     try {
-      const uri = await poster.post(post.text, image, `Map of the ${post.type} location of ${config.aircraftLabel}`);
+      const uri = await poster.post(text, image, `Map of the ${post.type} location of ${config.aircraftLabel}`);
       store.markPost(post.id, 'posted', uri);
-      logger.info({ uri, text: post.text }, 'posted to Bluesky');
+      logger.info({ uri, text }, 'posted to Bluesky');
       return;
     } catch (err) {
       logger.warn({ err: String(err), attempt }, 'Bluesky post failed');
