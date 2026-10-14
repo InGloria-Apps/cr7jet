@@ -15,3 +15,8 @@ export function landingText(place: string, ts: number, durationMs: number | null
   }
   return text;
 }
+
+// ODbL requires attribution for adsb.lol data and OpenStreetMap tiles.
+export function creditLine(hasMap: boolean): string {
+  return `\n\nData: adsb.lol${hasMap ? ' · Map © OpenStreetMap' : ''}`;
+}
