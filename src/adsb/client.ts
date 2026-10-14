@@ -25,7 +25,11 @@ export async function fetchObservation(now: number): Promise<Observation> {
   let gotResponse = false;
   for (const base of [config.primaryApiUrl, config.fallbackApiUrl]) {
     try {
-      const res = await fetch(base + config.aircraftHex, { signal: AbortSignal.timeout(10_000) });
+      const res = await fetch(base + config.aircraftHex, {
+        signal: AbortSignal.timeout(10_000),
+        // adsb.lol 403s Node's default fetch User-Agent
+        headers: { 'User-Agent': 'cr7jet-tracker/1.0.0' },
+      });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       gotResponse = true;
       const obs = normalize(await res.json(), now);
