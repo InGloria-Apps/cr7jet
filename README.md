@@ -3,8 +3,8 @@
 Tracks the private jet **LX-GOL** (ICAO24 `4d0226`) via ADS-B and posts takeoff/landing
 notifications to Bluesky, with a map of the location attached.
 
-- Polls [airplanes.live](https://airplanes.live) every 30 s, falling back to
-  [adsb.lol](https://adsb.lol) automatically.
+- Polls [adsb.lol](https://adsb.lol) every 30 s, falling back to
+  [airplanes.live](https://airplanes.live) automatically.
 - A debounced state machine detects takeoffs and landings — including "blocked jet"
   landings where the transponder drops off ADS-B below 3,000 ft near an airport.
 - State is persisted to SQLite, so restarts never duplicate or miss posts.

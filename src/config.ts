@@ -2,8 +2,9 @@ export const config = {
   aircraftHex: '4d0226',
   aircraftLabel: 'LX-GOL',
   pollIntervalMs: 30_000,
-  primaryApiUrl: 'https://api.airplanes.live/v2/hex/',
-  fallbackApiUrl: 'https://api.adsb.lol/v2/hex/',
+  primaryApiUrl: 'https://api.adsb.lol/v2/hex/',
+  // airplanes.live closed its free API to non-feeders (403) in Aug 2026
+  fallbackApiUrl: 'https://api.airplanes.live/v2/hex/',
   maxBackoffMs: 600_000,
   machine: {
     debounceReadings: 2,
